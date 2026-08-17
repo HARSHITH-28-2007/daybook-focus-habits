@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Daybook — Focus & Habits</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5C7256">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Daybook">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FAF6EE;
+    --panel:#FFFFFF;
+    --ink:#2B2E27;
+    --moss:#5C7256;
+    --moss-dark:#3F5239;
+    --sage:#A8B99A;
+    --sage-pale:#E7EEE0;
+    --clay:#C97A5B;
+    --ochre:#C79A3B;
+    --dust:#8B8F80;
+    --line:#E4DFD1;
+    --shadow: 0 1px 2px rgba(43,46,39,0.04), 0 4px 16px rgba(43,46,39,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* ---------- Header + Tabs ---------- */
+  header.top{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;margin-bottom:22px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .leaf{font-size:28px;line-height:1;}
+  .brand h1{
+    font-family:'Fraunces',serif;font-weight:600;font-size:28px;margin:0;
+    letter-spacing:-0.01em;
+  }
+  .brand p{margin:2px 0 0;color:#767A6E;font-size:13px;letter-spacing:.03em;text-transform:uppercase;}
+
+  .tabs{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;box-shadow:var(--shadow);}
+  .tab-btn{
+    border:none;background:transparent;color:var(--dust);font-family:'Inter';font-weight:600;
+    font-size:13px;padding:9px 18px;border-radius:9px;cursor:pointer;transition:.15s;
+    letter-spacing:.02em;
+  }
+  .tab-btn:hover{color:var(--moss-dark);}
+  .tab-btn.active{background:var(--moss);color:#fff;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:18px 20px;box-shadow:var(--shadow);
+  }
+  .card .eyebrow{
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8B8F80;
+    font-weight:600;margin-bottom:10px;
+  }
+  .card-title{
+    font-family:'Fraunces',serif;font-size:1.15rem;margin-bottom:15px;padding-bottom:10px;
+    border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;
+    color:var(--moss-dark);
+  }
+
+  .btn{
+    background:var(--sage-pale);color:var(--moss-dark);border:1px solid var(--line);
+    padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:.82rem;
+    transition:background .15s;font-family:'Inter';
+  }
+  .btn:hover{background:#DDE7D2;}
+
+  /* ---------- TODAY VIEW: deadline ---------- */
+  .deadline-card{margin-bottom:20px;}
+  .deadline-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .deadline-row input{
+    background:var(--cream);border:1px solid var(--line);color:var(--ink);
+    padding:7px 11px;border-radius:8px;font-family:'Inter';font-size:.85rem;
+  }
+  .deadline-row input:focus{outline:none;border-color:var(--sage);}
+  #exam-timer{font-family:'JetBrains Mono',monospace;font-size:1.05rem;color:var(--clay);font-weight:600;}
+
+  /* ---------- Eisenhower matrix ---------- */
+  .dashboard-container{
+    display:grid;grid-template-columns:1fr;gap:20px;
+  }
+  @media (min-width:1024px){
+    .dashboard-container{grid-template-columns:1.2fr 1fr;}
+  }
+  .matrix-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media (min-width:640px){.matrix-grid{grid-template-columns:1fr 1fr;}}
+
+  .quadrant{
+    background:var(--cream);border:1px solid var(--line);border-radius:12px;
+    padding:14px;display:flex;flex-direction:column;min-height:230px;
+  }
+  .quadrant-header{
+    font-weight:700;font-size:.85rem;margin-bottom:10px;display:flex;align-items:center;gap:8px;
+    font-family:'Inter';letter-spacing:.01em;
+  }
+  .quadrant-header::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;}
+  .q1 .quadrant-header{color:var(--clay);} .q1 .quadrant-header::before{background:var(--clay);}
+  .q2 .quadrant-header{color:var(--moss-dark);} .q2 .quadrant-header::before{background:var(--moss);}
+  .q3 .quadrant-header{color:var(--ochre);} .q3 .quadrant-header::before{background:var(--ochre);}
+  .q4 .quadrant-header{color:var(--dust);} .q4 .quadrant-header::before{background:var(--dust);}
+
+  .input-group{display:flex;gap:8px;margin-bottom:12px;}
+  .input-group input{
+    flex:1;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    padding:6px 10px;border-radius:8px;outline:none;font-size:.85rem;font-family:'Inter';
+  }
+  .input-group input:focus{border-color:var(--sage);}
+
+  .task-list{list-style:none;overflow-y:auto;flex:1;max-height:170px;margin:0;padding:0;}
+  .task-item{
+    display:flex;align-items:center;justify-content:space-between;background:var(--panel);
+    padding:8px 10px;border-radius:8px;margin-bottom:6px;border-left:3px solid transparent;
+    font-size:.85rem;
+  }
+  .q1 .task-item{border-left-color:var(--clay);}
+  .q2 .task-item{border-left-color:var(--moss);}
+  .q3 .task-item{border-left-color:var(--ochre);}
+  .q4 .task-item{border-left-color:var(--dust);}
+  .task-text{cursor:pointer;flex:1;margin-right:10px;word-break:break-word;}
+  .task-item.completed .task-text{text-decoration:line-through;color:#A6A99C;}
+  .delete-btn{background:transparent;color:var(--clay);border:none;cursor:pointer;font-weight:bold;padding:0 4px;font-size:1rem;}
+
+  /* ---------- Timetable ---------- */
+  .timetable-container{display:flex;flex-direction:column;gap:8px;max-height:600px;overflow-y:auto;padding-right:5px;}
+  .time-slot{
+    display:grid;grid-template-columns:76px 1fr;align-items:center;background:var(--cream);
+    border:1px solid var(--line);border-radius:8px;padding:9px 10px;
+  }
+  .time-label{font-weight:600;color:var(--dust);font-size:.78rem;font-family:'JetBrains Mono',monospace;}
+  .time-input{
+    background:transparent;border:none;border-bottom:1px dashed var(--line);color:var(--ink);
+    padding:4px;font-size:.88rem;outline:none;width:100%;font-family:'Inter';
+  }
+  .time-input:focus{border-bottom-color:var(--sage);}
+
+  /* ---------- Habit tracker ---------- */
+  .grid-top{display:grid;grid-template-columns:1.1fr 1.4fr;gap:16px;margin-bottom:16px;}
+  @media (max-width:760px){.grid-top{grid-template-columns:1fr;}}
+
+  .month-nav{display:flex;align-items:center;gap:10px;}
+  .month-nav button{
+    width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    background:var(--panel);color:var(--moss-dark);font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:.15s;
+  }
+  .month-nav button:hover{background:var(--sage-pale);}
+  .month-label{font-family:'Fraunces',serif;font-size:20px;min-width:150px;text-align:center;font-weight:500;}
+
+  .progress-row{display:flex;align-items:center;gap:14px;}
+  .progress-year{font-family:'Fraunces',serif;font-size:15px;color:var(--moss-dark);width:44px;}
+  .bar-track{flex:1;height:14px;background:var(--sage-pale);border-radius:8px;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--moss),var(--sage));border-radius:8px;transition:width .4s ease;}
+  .progress-pct{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:var(--moss-dark);width:48px;text-align:right;}
+
+  .total-row{display:flex;align-items:baseline;gap:10px;margin-top:2px;}
+  .total-num{font-family:'Fraunces',serif;font-size:34px;color:var(--moss-dark);}
+  .total-cap{color:#8B8F80;font-size:13px;}
+
+  .heatmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(15px,1fr));gap:3px;margin-top:8px;}
+  .heatcell{aspect-ratio:1;border-radius:3px;background:var(--sage-pale);}
+
+  table.tracker{width:100%;border-collapse:collapse;font-size:13px;}
+  .table-scroll{overflow-x:auto;border-radius:16px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);}
+  table.tracker th, table.tracker td{padding:0;text-align:center;}
+  table.tracker thead th{
+    font-family:'Inter';font-weight:600;font-size:10.5px;letter-spacing:.04em;color:#8B8F80;
+    padding:6px 3px;text-transform:uppercase;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  table.tracker thead tr.weeklabels th{background:var(--sage-pale);color:var(--moss-dark);font-size:10px;padding:5px 2px;}
+  th.habit-col, td.habit-col{
+    text-align:left;padding:10px 14px !important;font-weight:500;position:sticky;left:0;
+    background:var(--panel);min-width:150px;border-right:1px solid var(--line);
+  }
+  thead th.habit-col{background:var(--panel);}
+  tbody tr:not(:last-child) td{border-bottom:1px solid var(--line);}
+  tbody tr:hover td{background:#FCFBF7;}
+  tbody tr:hover td.habit-col{background:#FCFBF7;}
+
+  .daycell{width:30px;padding:6px 2px !important;}
+  .checkbox{
+    width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);
+    margin:0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    background:var(--cream);transition:.12s;color:transparent;font-size:13px;
+  }
+  .checkbox:hover{border-color:var(--sage);}
+  .checkbox.checked{background:var(--moss);border-color:var(--moss);color:#fff;}
+  .weekend .checkbox{background:#F3EFE3;}
+  .weekend .checkbox.checked{background:var(--moss);}
+
+  td.progress-col{min-width:120px;padding:8px 12px !important;}
+  .habit-progress{display:flex;align-items:center;gap:8px;}
+  .habit-progress .bar-track{height:8px;}
+  .habit-progress .pct{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--moss-dark);width:32px;text-align:right;}
+
+  .habit-name-input{border:none;background:transparent;font-family:'Inter';font-weight:500;font-size:13px;color:var(--ink);width:100%;}
+  .habit-name-input:focus{outline:none;border-bottom:1px solid var(--moss);}
+
+  .footer-actions{display:flex;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;gap:10px;}
+  .add-habit-btn{
+    border:1px dashed var(--sage);background:var(--sage-pale);color:var(--moss-dark);
+    padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .add-habit-btn:hover{background:#DDE7D2;}
+  .save-note{font-size:12px;color:#9A9E8F;}
+  .del-btn{border:none;background:none;color:#C9A3A3;cursor:pointer;font-size:15px;padding:2px 6px;visibility:hidden;}
+  tr:hover .del-btn{visibility:visible;}
+
+  /* Clean scrollbars */
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  /* Watermark */
+  .watermark{
+    position:fixed;bottom:14px;right:18px;font-size:1rem;
+    color:rgba(43,46,39,0.14);font-weight:700;pointer-events:none;
+    z-index:9999;letter-spacing:2px;text-transform:uppercase;
+    font-family:'Inter',sans-serif;
+  }
+
+  /* ---------- Diary ---------- */
+  .diary-controls{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
+  .diary-daypicker{
+    display:flex;flex-wrap:wrap;gap:5px;max-height:96px;overflow-y:auto;padding-bottom:2px;
+  }
+  .diary-daybtn{
+    width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--cream);
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .diary-daybtn:hover{border-color:var(--sage);}
+  .diary-daybtn.active{background:var(--moss);border-color:var(--moss);color:#fff;}
+  .diary-daybtn.has-entry::after{
+    content:'';position:absolute;bottom:3px;right:3px;width:5px;height:5px;border-radius:50%;
+    background:var(--clay);
+  }
+  .diary-daybtn.active.has-entry::after{background:#fff;}
+  .diary-text{
+    width:100%;min-height:220px;border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;font-family:'Inter';font-size:14.5px;line-height:1.6;color:var(--ink);
+    background:var(--cream);resize:vertical;
+  }
+  .diary-text:focus{outline:none;border-color:var(--sage);}
+  .diary-meta{
+    display:flex;justify-content:space-between;align-items:center;margin-top:10px;
+    font-family:'Fraunces',serif;font-size:13px;color:#8B8F80;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="leaf">🌿</div>
+      <div>
+        <h1>Daybook</h1>
+        <p>Plan today, track the streak</p>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-today">Today</button>
+      <button class="tab-btn" id="tab-habits">Habits</button>
+      <button class="tab-btn" id="tab-diary">Diary</button>
+    </div>
+  </header>
+
+  <!-- ============ TODAY VIEW ============ -->
+  <section class="view active" id="view-today">
+
+    <div class="card deadline-card">
+      <div class="eyebrow">Countdown</div>
+      <div class="deadline-row">
+        <input type="text" id="deadline-topic" placeholder="Topic (e.g. Maths Internal)">
+        <input type="datetime-local" id="deadline-date">
+        <button class="btn" onclick="setNewDeadline()">Set deadline</button>
+      </div>
+      <div id="exam-timer">Select a date to begin</div>
+    </div>
+    <div class="save-note" id="focusSaveNote" style="text-align:right;margin:-12px 2px 12px;">Saved automatically</div>
+
+    <div class="dashboard-container">
+
+      <!-- LEFT: Eisenhower matrix -->
+      <div class="card">
+        <div class="card-title">
+          <span>Priority matrix</span>
+          <button class="btn" onclick="clearMatrixTasks()">Clear all</button>
+        </div>
+        <div class="matrix-grid">
+          <div class="quadrant q1">
+            <div class="quadrant-header">Urgent &amp; important — Do</div>
+            <div class="input-group">
+              <input type="text" id="input-q1" placeholder="Add critical task...">
+              <button class="btn" onclick="addTask('q1')">+</button>
+            </div>
+            <ul class="task-list" id="list-q1"></ul>
+          </div>
+          <div class="quadrant q2">
+            <div class="quadrant-header">Important, not urgent — Plan</div>
+            <div class="input-group">
+              <input type="text" id="input-q2" placeholder="Add goal/strategy...">
+              <button class="btn" onclick="addTask('q2')">+</button>
+            </div>
+            <ul class="task-list" id="list-q2"></ul>
+          </div>
+          <div class="quadrant q3">
+            <div class="quadrant-header">Urgent, not important — Delegate</div>
+            <div class="input-group">
+              <input type="text" id="input-q3" placeholder="Add distraction/interrupt...">
+              <button class="btn" onclick="addTask('q3')">+</button>
+            </div>
+            <ul class="task-list" id="list-q3"></ul>
+          </div>
+          <div class="quadrant q4">
+            <div class="quadrant-header">Not urgent or important — Eliminate</div>
+            <div class="input-group">
+              <input type="text" id="input-q4" placeholder="Add casual/waste task...">
+              <button class="btn" onclick="addTask('q4')">+</button>
+            </div>
+            <ul class="task-list" id="list-q4"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Hourly timetable -->
+      <div class="card">
+        <div class="card-title">
+          <span>Hourly timetable</span>
+          <button class="btn" onclick="clearTimetable()">Clear day</button>
+        </div>
+        <div class="timetable-container" id="timetable-slots"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ HABITS VIEW ============ -->
+  <section class="view" id="view-habits">
+    <header class="top" style="margin-bottom:16px;">
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <div class="year-nav month-nav">
+          <button id="prevYear">«</button>
+          <div class="month-label" id="yearLabel">2026</div>
+          <button id="nextYear">»</button>
+        </div>
+        <div class="month-nav">
+          <button id="prevMonth">‹</button>
+          <div class="month-label" id="monthLabel">January</div>
+          <button id="nextMonth">›</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid-top">
+      <div class="card">
+        <div class="eyebrow" id="progressEyebrow">Overall monthly progress — 2026</div>
+        <div class="progress-row">
+          <div class="progress-year" id="progressYear">2026</div>
+          <div class="bar-track"><div class="bar-fill" id="overallBar"></div></div>
+          <div class="progress-pct" id="overallPct">0%</div>
+        </div>
+        <div class="total-row">
+          <div class="total-num" id="totalCompleted">0</div>
+          <div class="total-cap">total check-ins completed this month</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Daily activity heatmap · darker = more habits completed</div>
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table class="tracker">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="footer-actions">
+      <button class="add-habit-btn" id="addHabitBtn">+ Add habit</button>
+      <div class="save-note" id="saveNote">Saved automatically</div>
+    </div>
+  </section>
+
+  <!-- ============ DIARY VIEW ============ -->
+  <section class="view" id="view-diary">
+    <header class="top" style="margin-bottom:16px;">
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <div class="year-nav month-nav">
+          <button id="diaryPrevYear">«</button>
+          <div class="month-label" id="diaryYearLabel">2026</div>
+          <button id="diaryNextYear">»</button>
+        </div>
+        <div class="month-nav">
+          <button id="diaryPrevMonth">‹</button>
+          <div class="month-label" id="diaryMonthLabel">January</div>
+          <button id="diaryNextMonth">›</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="eyebrow">Pick a day</div>
+      <div class="diary-controls">
+        <div class="diary-daypicker" id="diaryDayPicker"></div>
+      </div>
+      <textarea id="diaryText" class="diary-text" placeholder="Write about your day..."></textarea>
+      <div class="diary-meta">
+        <span id="diaryDateLabel"></span>
+        <span id="diarySaveNote" class="save-note">Saved automatically</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="watermark">Harshith M</div>
+
+<script>
+/* =========================================================
+   Storage adapter — tries Claude's window.storage first
+   (available inside claude.ai artifacts), falls back to the
+   browser's localStorage, and as a last resort keeps data in
+   memory for the session so the app still works even if
+   nothing can persist. Surfaces *why* a save failed instead
+   of a generic message, since there's no console on mobile.
+   ========================================================= */
+const memoryStore = {};
+let storageMode = 'local'; // localStorage is used directly; falls back to memory only if localStorage itself is unavailable
+let storageModeDetail = '';
+
+async function detectStorageMode(){
+  try{
+    window.localStorage.setItem('__daybook_probe__','1');
+    window.localStorage.removeItem('__daybook_probe__');
+    storageMode = 'local';
+    return;
+  }catch(e){
+    storageModeDetail = 'localStorage unavailable: ' + (e && e.message ? e.message : e);
+    storageMode = 'memory';
+  }
+}
+
+async function storageGet(key){
+  if(storageMode === 'local'){
+    try{ return window.localStorage.getItem(key); }
+    catch(e){ console.error('localStorage get failed', e); return null; }
+  }
+  return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
+}
+// Returns {ok, error} — never throws.
+async function storageSet(key, value){
+  if(storageMode === 'local'){
+    try{ window.localStorage.setItem(key, value); return { ok:true }; }
+    catch(e){ return { ok:false, error:'localStorage.setItem threw: ' + (e && e.message ? e.message : e) }; }
+  }
+  memoryStore[key] = value;
+  return { ok:true, error:'Using in-memory storage only — data will not survive closing this tab.' };
+}
+
+function describeSaveResult(result){
+  if(result.ok && !result.error) return { text: 'Saved automatically', color: '#9A9E8F' };
+  if(result.ok && result.error) return { text: result.error, color: 'var(--ochre)' };
+  return { text: 'Could not save: ' + result.error, color: 'var(--clay)' };
+}
+
+// Simple debounce so rapid typing doesn't fire a storage write per keystroke
+// (frequent writes to the same key can get rate-limited).
+function debounce(fn, wait){
+  let t;
+  return function(...args){
+    clearTimeout(t);
+    t = setTimeout(()=>fn.apply(this,args), wait);
+  };
+}
+
+/* =========================================================
+   TABS
+   ========================================================= */
+document.getElementById('tab-today').addEventListener('click', ()=>switchTab('today'));
+document.getElementById('tab-habits').addEventListener('click', ()=>switchTab('habits'));
+document.getElementById('tab-diary').addEventListener('click', ()=>switchTab('diary'));
+function switchTab(name){
+  document.getElementById('view-today').classList.toggle('active', name==='today');
+  document.getElementById('view-habits').classList.toggle('active', name==='habits');
+  document.getElementById('view-diary').classList.toggle('active', name==='diary');
+  document.getElementById('tab-today').classList.toggle('active', name==='today');
+  document.getElementById('tab-habits').classList.toggle('active', name==='habits');
+  document.getElementById('tab-diary').classList.toggle('active', name==='diary');
+}
+
+/* =========================================================
+   TODAY VIEW: matrix + timetable + deadline
+   ========================================================= */
+const FOCUS_KEY = 'daybook-focus-data';
+let matrixData = { q1: [], q2: [], q3: [], q4: [] };
+let timetableData = {};
+let targetDate = null;
+let targetTopic = 'Deadline';
+
+const hours = [
+  "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
+  "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM",
+  "06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"
+];
+
+function msToDatetimeLocalValue(ms){
+  const d = new Date(ms);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function loadFocusData(){
+  const raw = await storageGet(FOCUS_KEY);
+  if(raw){
+    try{
+      const parsed = JSON.parse(raw);
+      matrixData = parsed.matrixData || matrixData;
+      timetableData = parsed.timetableData || timetableData;
+      targetDate = parsed.targetDate || null;
+      targetTopic = parsed.targetTopic || 'Deadline';
+    }catch(e){ /* fall back to defaults */ }
+  }
+  // Repopulate the deadline inputs so a saved countdown survives a reload.
+  if(targetDate){
+    const dateInput = document.getElementById('deadline-date');
+    const topicInput = document.getElementById('deadline-topic');
+    if(dateInput) dateInput.value = msToDatetimeLocalValue(targetDate);
+    if(topicInput) topicInput.value = targetTopic;
+  }
+}
+
+async function saveFocusData(){
+  const result = await storageSet(FOCUS_KEY, JSON.stringify({ matrixData, timetableData, targetDate, targetTopic }));
+  const note = document.getElementById('focusSaveNote');
+  if(note){
+    const d = describeSaveResult(result);
+    note.textContent = d.text;
+    note.style.color = d.color;
+  }
+}
+const saveFocusDataDebounced = debounce(saveFocusData, 500);
+
+function addTask(quadrant){
+  const input = document.getElementById(`input-${quadrant}`);
+  const text = input.value.trim();
+  if (!text) return;
+  matrixData[quadrant].push({ id: Date.now().toString(), text, completed: false });
+  input.value = '';
+  saveFocusData();
+  renderMatrixUI();
+}
+function toggleTask(quadrant, id){
+  const task = matrixData[quadrant].find(t => t.id === id);
+  if (task) task.completed = !task.completed;
+  saveFocusData();
+  renderMatrixUI();
+}
+function deleteTask(quadrant, id){
+  matrixData[quadrant] = matrixData[quadrant].filter(t => t.id !== id);
+  saveFocusData();
+  renderMatrixUI();
+}
+function renderMatrixUI(){
+  ['q1','q2','q3','q4'].forEach(q => {
+    const listContainer = document.getElementById(`list-${q}`);
+    listContainer.innerHTML = '';
+    matrixData[q].forEach(task => {
+      const li = document.createElement('li');
+      li.className = `task-item ${task.completed ? 'completed' : ''}`;
+      li.innerHTML = `
+        <span class="task-text" onclick="toggleTask('${q}', '${task.id}')">${task.text}</span>
+        <button class="delete-btn" onclick="deleteTask('${q}', '${task.id}')">×</button>
+      `;
+      listContainer.appendChild(li);
+    });
+  });
+}
+function clearMatrixTasks(){
+  if(confirm("Clear all items from your matrix quadrants?")){
+    matrixData = { q1: [], q2: [], q3: [], q4: [] };
+    saveFocusData();
+    renderMatrixUI();
+  }
+}
+
+function buildTimetableUI(){
+  const container = document.getElementById('timetable-slots');
+  container.innerHTML = '';
+  hours.forEach(hour => {
+    timetableData[hour] = timetableData[hour] || "";
+    const slot = document.createElement('div');
+    slot.className = 'time-slot';
+    slot.innerHTML = `
+      <div class="time-label">${hour}</div>
+      <input type="text" class="time-input" data-hour="${hour}"
+             value="${timetableData[hour]}" placeholder="Block this hour..."
+             oninput="updateTimetableSlot(this)">
+    `;
+    container.appendChild(slot);
+  });
+}
+function updateTimetableSlot(element){
+  const hour = element.getAttribute('data-hour');
+  timetableData[hour] = element.value;
+  saveFocusDataDebounced();
+}
+function clearTimetable(){
+  if(confirm("Clear today's hourly timetable schedule?")){
+    hours.forEach(hour => timetableData[hour] = "");
+    saveFocusData();
+    buildTimetableUI();
+  }
+}
+
+function setNewDeadline(){
+  const dateInput = document.getElementById('deadline-date').value;
+  const topicInput = document.getElementById('deadline-topic').value;
+  if (!dateInput){ alert("Please select a date and time!"); return; }
+  targetDate = new Date(dateInput).getTime();
+  targetTopic = topicInput || "Deadline";
+  saveFocusData();
+  updateCountdown();
+}
+function updateCountdown(){
+  if (!targetDate) return;
+  const now = new Date().getTime();
+  const diff = targetDate - now;
+  const timerElement = document.getElementById("exam-timer");
+  if (!timerElement) return;
+  if (diff < 0){ timerElement.innerHTML = `✅ ${targetTopic} reached!`; return; }
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const secs = Math.floor((diff % (1000 * 60)) / 1000);
+  timerElement.innerHTML = `⏳ ${targetTopic}: ${days}d ${hrs}h ${mins}m ${secs}s remaining`;
+}
+setInterval(updateCountdown, 1000);
+
+/* =========================================================
+   HABITS VIEW
+   ========================================================= */
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const HABIT_STORAGE_KEY = "habit-tracker-data";
+const OLD_HABIT_STORAGE_KEY = "habit-tracker-2026"; // previous single-year format, migrated on load
+const DEFAULT_HABITS = ["Book Reading","1 Hour Gym","Meditation","Drink Water","No Sugar"];
+const MIN_YEAR = 2000, MAX_YEAR = 2100;
+
+function daysInMonth(year, monthIdx){ return new Date(year, monthIdx+1, 0).getDate(); }
+
+function buildDefaultChecked(year, habits){
+  const checked = [];
+  for(let m=0;m<12;m++){
+    const dim = daysInMonth(year, m);
+    checked.push(habits.map(()=>new Array(dim).fill(false)));
+  }
+  // Preserve the original seed data, but only for the year/habit layout it was captured for.
+  if(year === 2026){
+    const jan = checked[0];
+    const setDays = (habitIdx, days) => { if(jan[habitIdx]) days.forEach(d => jan[habitIdx][d-1] = true); };
+    setDays(0, [1,2,3,4,5,6,7,8,9,10,11,12,13,15,16,20,22,24,25,26,27]);
+    setDays(1, [1,2,3,4,5,7,8,10,11,14,16,19,21,22,24,25,26]);
+    setDays(2, [4,7,9,14,15,17,18,19,20,21,23,24,25,27,28]);
+    setDays(3, [2,3,4,7,8,9,10,11,13,14,15,16,20,23,28]);
+    setDays(4, [1,2,3,4,5,6,7,8,9,10,11,14,15,16,17,18,21,22,23,24,25,26,28]);
+  }
+  return checked;
+}
+
+let habitState = null; // { habits: [...], years: { "2026": [12 month arrays], ... } }
+let currentMonth = 0;
+let currentYear = 2026;
+
+// Make sure habitState.years[currentYear] exists and its shape (habit count per month)
+// matches the current habits list, growing/shrinking as needed.
+function ensureYearData(year){
+  const key = String(year);
+  if(!habitState.years[key]){
+    habitState.years[key] = buildDefaultChecked(year, habitState.habits);
+    return;
+  }
+  const yearChecked = habitState.years[key];
+  for(let m=0;m<12;m++){
+    const dim = daysInMonth(year, m);
+    while(yearChecked[m].length < habitState.habits.length){
+      yearChecked[m].push(new Array(dim).fill(false));
+    }
+    if(yearChecked[m].length > habitState.habits.length){
+      yearChecked[m] = yearChecked[m].slice(0, habitState.habits.length);
+    }
+  }
+}
+
+async function initHabitState(){
+  const raw = await storageGet(HABIT_STORAGE_KEY);
+  if(raw){
+    try{
+      habitState = JSON.parse(raw);
+      ensureYearData(currentYear);
+      return;
+    }catch(e){ /* fall through */ }
+  }
+  // Migrate from the previous single-year (2026-only) storage format, if present.
+  const oldRaw = await storageGet(OLD_HABIT_STORAGE_KEY);
+  if(oldRaw){
+    try{
+      const old = JSON.parse(oldRaw);
+      habitState = { habits: old.habits, years: { "2026": old.checked } };
+      ensureYearData(currentYear);
+      await persistHabits();
+      return;
+    }catch(e){ /* fall through to fresh defaults */ }
+  }
+  habitState = { habits: DEFAULT_HABITS.slice(), years: {} };
+  ensureYearData(currentYear);
+  await persistHabits();
+}
+async function persistHabits(){
+  const result = await storageSet(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+  const note = document.getElementById('saveNote');
+  const d = describeSaveResult(result);
+  note.textContent = d.text;
+  note.style.color = d.color;
+}
+
+function weekRanges(dim){
+  const ranges = [];
+  let day = 1; let w = 1;
+  while(day <= dim){
+    const remaining = dim - day + 1;
+    if(remaining >= 7 || w <= 4){
+      const end = Math.min(day+6, dim);
+      const label = w<=4 ? ('WEEK ' + w) : 'EXTRA DAYS';
+      ranges.push({label, start:day, end});
+      day = end+1; w++;
+    } else {
+      ranges.push({label:'EXTRA DAYS', start:day, end:dim});
+      day = dim+1;
+    }
+  }
+  return ranges;
+}
+
+function renderHabits(){
+  const dim = daysInMonth(currentYear, currentMonth);
+  document.getElementById('monthLabel').textContent = MONTH_NAMES[currentMonth];
+  document.getElementById('yearLabel').textContent = currentYear;
+  document.getElementById('progressYear').textContent = currentYear;
+  document.getElementById('progressEyebrow').textContent = `Overall monthly progress — ${currentYear}`;
+
+  const monthChecked = habitState.years[String(currentYear)][currentMonth];
+  const habits = habitState.habits;
+
+  const ranges = weekRanges(dim);
+  const thead = document.getElementById('tableHead');
+  let weekRow = '<tr class="weeklabels"><th class="habit-col">HABITS</th>';
+  ranges.forEach(r => { weekRow += `<th colspan="${r.end-r.start+1}">${r.label}</th>`; });
+  weekRow += '<th>PROGRESS</th></tr>';
+
+  let dayRow = '<tr><th class="habit-col"></th>';
+  for(let d=1; d<=dim; d++){
+    const dow = new Date(currentYear, currentMonth, d).getDay();
+    const isWeekend = (dow===0 || dow===6);
+    dayRow += `<th class="${isWeekend?'weekend':''}">${d}</th>`;
+  }
+  dayRow += '<th></th></tr>';
+  thead.innerHTML = weekRow + dayRow;
+
+  const tbody = document.getElementById('tableBody');
+  let rows = '';
+  habits.forEach((habitName, hIdx) => {
+    const arr = monthChecked[hIdx];
+    const completedCount = arr.filter(Boolean).length;
+    const pct = dim ? completedCount/dim : 0;
+    let row = `<tr data-habit="${hIdx}"><td class="habit-col">
+      <input class="habit-name-input" data-habit="${hIdx}" value="${habitName.replace(/"/g,'&quot;')}">
+      <button class="del-btn" data-habit="${hIdx}" title="Remove habit">✕</button>
+    </td>`;
+    for(let d=1; d<=dim; d++){
+      const dow = new Date(currentYear, currentMonth, d).getDay();
+      const isWeekend = (dow===0 || dow===6);
+      const isChecked = arr[d-1];
+      row += `<td class="daycell ${isWeekend?'weekend':''}">
+        <div class="checkbox ${isChecked?'checked':''}" data-habit="${hIdx}" data-day="${d}">${isChecked?'✓':''}</div>
+      </td>`;
+    }
+    row += `<td class="progress-col">
+      <div class="habit-progress">
+        <div class="bar-track"><div class="bar-fill" style="width:${(pct*100).toFixed(1)}%"></div></div>
+        <div class="pct">${Math.round(pct*100)}%</div>
+      </div>
+    </td></tr>`;
+    rows += row;
+  });
+  tbody.innerHTML = rows;
+
+  let totalPossible = habits.length * dim;
+  let totalDone = 0;
+  monthChecked.forEach(arr => arr.forEach(v => { if(v) totalDone++; }));
+  const overallPct = totalPossible ? totalDone/totalPossible : 0;
+  document.getElementById('overallBar').style.width = (overallPct*100).toFixed(1)+'%';
+  document.getElementById('overallPct').textContent = Math.round(overallPct*100)+'%';
+  document.getElementById('totalCompleted').textContent = totalDone;
+
+  const heatmap = document.getElementById('heatmap');
+  let cells = '';
+  for(let d=1; d<=dim; d++){
+    let count = 0;
+    monthChecked.forEach(arr => { if(arr[d-1]) count++; });
+    const intensity = habits.length ? count/habits.length : 0;
+    const bg = intensity===0 ? 'var(--sage-pale)' : `rgba(92,114,86,${0.25+intensity*0.75})`;
+    cells += `<div class="heatcell" style="background:${bg}" title="Day ${d}: ${count} habit(s) completed"></div>`;
+  }
+  heatmap.innerHTML = cells;
+}
+
+async function toggleDay(hIdx, day){
+  const arr = habitState.years[String(currentYear)][currentMonth][hIdx];
+  arr[day-1] = !arr[day-1];
+  renderHabits();
+  await persistHabits();
+}
+async function renameHabit(hIdx, newName){
+  habitState.habits[hIdx] = newName;
+  await persistHabits();
+}
+async function addHabit(){
+  habitState.habits.push('New Habit');
+  Object.keys(habitState.years).forEach(y => {
+    for(let m=0;m<12;m++){
+      habitState.years[y][m].push(new Array(daysInMonth(Number(y), m)).fill(false));
+    }
+  });
+  renderHabits();
+  await persistHabits();
+}
+async function removeHabit(hIdx){
+  habitState.habits.splice(hIdx,1);
+  Object.keys(habitState.years).forEach(y => {
+    for(let m=0;m<12;m++){
+      habitState.years[y][m].splice(hIdx,1);
+    }
+  });
+  renderHabits();
+  await persistHabits();
+}
+
+document.getElementById('tableBody').addEventListener('click', (e)=>{
+  const box = e.target.closest('.checkbox');
+  if(box){ toggleDay(parseInt(box.dataset.habit), parseInt(box.dataset.day)); return; }
+  const del = e.target.closest('.del-btn');
+  if(del){ removeHabit(parseInt(del.dataset.habit)); }
+});
+document.getElementById('tableBody').addEventListener('change', (e)=>{
+  if(e.target.classList.contains('habit-name-input')){
+    renameHabit(parseInt(e.target.dataset.habit), e.target.value);
+  }
+});
+document.getElementById('addHabitBtn').addEventListener('click', addHabit);
+document.getElementById('prevMonth').addEventListener('click', ()=>{ currentMonth = (currentMonth+11)%12; renderHabits(); });
+document.getElementById('nextMonth').addEventListener('click', ()=>{ currentMonth = (currentMonth+1)%12; renderHabits(); });
+document.getElementById('prevYear').addEventListener('click', ()=>{
+  if(currentYear <= MIN_YEAR) return;
+  currentYear -= 1;
+  ensureYearData(currentYear);
+  renderHabits();
+  persistHabits();
+});
+document.getElementById('nextYear').addEventListener('click', ()=>{
+  if(currentYear >= MAX_YEAR) return;
+  currentYear += 1;
+  ensureYearData(currentYear);
+  renderHabits();
+  persistHabits();
+});
+
+/* =========================================================
+   DIARY VIEW
+   ========================================================= */
+const DIARY_STORAGE_KEY = "daybook-diary-data";
+let diaryEntries = {}; // { "2026-01-15": "text..." }
+const __today = new Date();
+let diaryYear = __today.getFullYear();
+let diaryMonth = __today.getMonth();
+let diarySelectedDay = __today.getDate();
+
+function diaryKey(year, monthIdx, day){
+  return `${year}-${String(monthIdx+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+async function initDiaryState(){
+  const raw = await storageGet(DIARY_STORAGE_KEY);
+  if(raw){
+    try{ diaryEntries = JSON.parse(raw) || {}; return; }
+    catch(e){ /* fall through to empty */ }
+  }
+  diaryEntries = {};
+}
+
+async function persistDiary(){
+  const result = await storageSet(DIARY_STORAGE_KEY, JSON.stringify(diaryEntries));
+  const note = document.getElementById('diarySaveNote');
+  const d = describeSaveResult(result);
+  note.textContent = d.text;
+  note.style.color = d.color;
+}
+
+function renderDiary(){
+  document.getElementById('diaryYearLabel').textContent = diaryYear;
+  document.getElementById('diaryMonthLabel').textContent = MONTH_NAMES[diaryMonth];
+
+  const dim = daysInMonth(diaryYear, diaryMonth);
+  if(diarySelectedDay > dim) diarySelectedDay = 1;
+
+  const picker = document.getElementById('diaryDayPicker');
+  let html = '';
+  for(let d=1; d<=dim; d++){
+    const key = diaryKey(diaryYear, diaryMonth, d);
+    const hasEntry = !!(diaryEntries[key] && diaryEntries[key].trim());
+    const active = d === diarySelectedDay;
+    html += `<button type="button" class="diary-daybtn ${active?'active':''} ${hasEntry?'has-entry':''}" data-day="${d}">${d}</button>`;
+  }
+  picker.innerHTML = html;
+  loadDiaryEntry();
+}
+
+function loadDiaryEntry(){
+  const key = diaryKey(diaryYear, diaryMonth, diarySelectedDay);
+  document.getElementById('diaryText').value = diaryEntries[key] || '';
+  document.getElementById('diaryDateLabel').textContent =
+    `${MONTH_NAMES[diaryMonth]} ${diarySelectedDay}, ${diaryYear}`;
+}
+
+document.getElementById('diaryDayPicker').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.diary-daybtn');
+  if(!btn) return;
+  diarySelectedDay = parseInt(btn.dataset.day);
+  renderDiary();
+});
+
+let diarySaveTimer = null;
+document.getElementById('diaryText').addEventListener('input', (e)=>{
+  const key = diaryKey(diaryYear, diaryMonth, diarySelectedDay);
+  diaryEntries[key] = e.target.value;
+  document.getElementById('diarySaveNote').textContent = 'Saving…';
+  document.getElementById('diarySaveNote').style.color = '#9A9E8F';
+  clearTimeout(diarySaveTimer);
+  diarySaveTimer = setTimeout(async ()=>{
+    await persistDiary();
+    const btn = document.querySelector(`#diaryDayPicker .diary-daybtn[data-day="${diarySelectedDay}"]`);
+    if(btn){
+      const hasEntry = !!(diaryEntries[key] && diaryEntries[key].trim());
+      btn.classList.toggle('has-entry', hasEntry);
+    }
+  }, 500);
+});
+
+document.getElementById('diaryPrevMonth').addEventListener('click', ()=>{
+  diaryMonth = (diaryMonth+11)%12;
+  if(diaryMonth===11) diaryYear -= 1;
+  diarySelectedDay = 1;
+  renderDiary();
+});
+document.getElementById('diaryNextMonth').addEventListener('click', ()=>{
+  diaryMonth = (diaryMonth+1)%12;
+  if(diaryMonth===0) diaryYear += 1;
+  diarySelectedDay = 1;
+  renderDiary();
+});
+document.getElementById('diaryPrevYear').addEventListener('click', ()=>{
+  if(diaryYear <= MIN_YEAR) return;
+  diaryYear -= 1;
+  renderDiary();
+});
+document.getElementById('diaryNextYear').addEventListener('click', ()=>{
+  if(diaryYear >= MAX_YEAR) return;
+  diaryYear += 1;
+  renderDiary();
+});
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+function boot(){
+  (async function(){
+    await detectStorageMode();
+
+    await loadFocusData();
+    buildTimetableUI();
+    renderMatrixUI();
+    updateCountdown();
+
+    await initHabitState();
+    renderHabits();
+
+    await initDiaryState();
+    renderDiary();
+  })();
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+
+// Register the service worker (enables "Install app" / "Add to Home screen"
+// with offline support). Requires the app to be served over https or from
+// localhost — it will silently no-op if opened straight from a local file.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* not servable from file:// — that's fine, the app still works */ });
+  });
+}
+
+</script>
+</body>
+</html>
